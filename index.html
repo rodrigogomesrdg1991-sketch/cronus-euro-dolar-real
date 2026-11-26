@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Econômico 2026 | Dólar, Euro & Real</title>
+    <title>Painel Econômico 2026 | Dólar, Euro, Real & Bitcoin</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -20,6 +20,7 @@
                             usd: '#10b981',
                             eur: '#ef4444',
                             brl: '#f59e0b',
+                            btc: '#f97316',
                             neon: '#38bdf8'
                         }
                     },
@@ -91,10 +92,10 @@
                         Panorama Global Diário
                     </span>
                     <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mt-3">
-                        Perspectiva Macroeconômica das Moedas
+                        Perspectiva Macroeconômica & Cripto
                     </h2>
                     <p id="heroSummaryText" class="text-slate-400 text-sm md:text-base max-w-2xl mt-2 leading-relaxed">
-                        Acompanhamento cambial em tempo real. O Dólar a R$ 5,50 e o Euro a R$ 6,14 refletem o cenário atual de juros globais e balança comercial.
+                        Acompanhamento cambial e cripto em tempo real. Dólar a R$ 5,50, Euro a R$ 6,14 e Bitcoin a R$ 416.916,00 refletem liquidez global e juros.
                     </p>
                 </div>
                 
@@ -106,17 +107,17 @@
                         </span>
                     </div>
                     <div class="flex-1 sm:flex-none glass-card p-3 rounded-2xl border border-slate-800 text-center min-w-[120px]">
-                        <span class="text-xs text-slate-400 block">Risco Brasil</span>
+                        <span class="text-xs text-slate-400 block">Bitcoin (BRL)</span>
                         <span class="text-lg font-bold text-amber-400 flex items-center justify-center gap-1">
-                            <i data-lucide="activity" class="w-4 h-4"></i> Estável
+                            <i data-lucide="bitcoin" class="w-4 h-4"></i> <span id="heroBtcValue">R$ 416.916</span>
                         </span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Cards de Moedas -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Cards de Moedas & Bitcoin -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
             <!-- USD Card -->
             <div class="glass-card neon-glow-usd rounded-3xl p-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-1">
                 <div class="flex justify-between items-start">
@@ -132,12 +133,12 @@
                     </span>
                 </div>
                 <div class="mt-6">
-                    <div class="text-3xl sm:text-4xl font-black tracking-tight text-white">
-                        <span id="cardUsdValue">R$ 5,50</span> <span class="text-sm font-medium text-slate-400">cotação</span>
+                    <div class="text-3xl font-black tracking-tight text-white">
+                        <span id="cardUsdValue">R$ 5,50</span> <span class="text-xs font-medium text-slate-400">cotação</span>
                     </div>
                     <div class="flex items-center gap-2 mt-2 text-xs text-slate-400">
                         <span id="cardUsdVar" class="text-emerald-400 font-semibold flex items-center"><i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +0.3%</span>
-                        <span>vs fechamento anterior</span>
+                        <span>vs fechamento</span>
                     </div>
                 </div>
             </div>
@@ -157,12 +158,37 @@
                     </span>
                 </div>
                 <div class="mt-6">
-                    <div class="text-3xl sm:text-4xl font-black tracking-tight text-white">
-                        <span id="cardEurValue">R$ 6,14</span> <span class="text-sm font-medium text-slate-400">cotação</span>
+                    <div class="text-3xl font-black tracking-tight text-white">
+                        <span id="cardEurValue">R$ 6,14</span> <span class="text-xs font-medium text-slate-400">cotação</span>
                     </div>
                     <div class="flex items-center gap-2 mt-2 text-xs text-slate-400">
                         <span id="cardEurVar" class="text-rose-400 font-semibold flex items-center"><i data-lucide="trending-down" class="w-3 h-3 mr-1"></i> -0.2%</span>
-                        <span>vs fechamento anterior</span>
+                        <span>vs fechamento</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BTC Card -->
+            <div class="glass-card neon-glow-brl rounded-3xl p-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-1">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400 font-bold text-xl">₿</div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Bitcoin</h3>
+                            <p class="text-xs text-slate-400">BTC / BRL</p>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20 flex items-center gap-1">
+                        <i data-lucide="flame" class="w-3.5 h-3.5"></i> 24/7 CRIPTO
+                    </span>
+                </div>
+                <div class="mt-6">
+                    <div class="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                        <span id="cardBtcValue">R$ 416.916,00</span>
+                    </div>
+                    <div class="flex items-center gap-2 mt-2 text-xs text-slate-400">
+                        <span id="cardBtcVar" class="text-orange-400 font-semibold flex items-center"><i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +1.8%</span>
+                        <span>variação 24h</span>
                     </div>
                 </div>
             </div>
@@ -182,32 +208,47 @@
                     </span>
                 </div>
                 <div class="mt-6">
-                    <div class="text-3xl sm:text-4xl font-black tracking-tight text-white">
-                        Selic 11,25% <span class="text-sm font-medium text-slate-400">meta atual</span>
+                    <div class="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                        Selic 11,25% <span class="text-xs font-medium text-slate-400">meta</span>
                     </div>
                     <div class="flex items-center gap-2 mt-2 text-xs text-slate-400">
-                        <span class="text-amber-400 font-semibold flex items-center"><i data-lucide="activity" class="w-3 h-3 mr-1"></i> Volatilidade Média</span>
+                        <span class="text-amber-400 font-semibold flex items-center"><i data-lucide="activity" class="w-3 h-3 mr-1"></i> Média</span>
                         <span>Carry Trade Ativo</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Chart Section -->
+        <!-- Seção de Gráficos (Câmbio Tradicional vs Gráfico Cripto Bitcoin) -->
         <section class="glass-card rounded-3xl p-6 md:p-8">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                 <div>
-                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <h3 id="chartTitle" class="text-xl font-bold text-white flex items-center gap-2">
                         <i data-lucide="line-chart" class="w-5 h-5 text-indigo-400"></i>
-                        Trajetória Recente do Câmbio (2026)
+                        Trajetória do Câmbio (USD & EUR)
                     </h3>
-                    <p class="text-xs text-slate-400 mt-1">Comparativo de valorização em relação ao Real Brasileiro (BRL)</p>
+                    <p id="chartSubtitle" class="text-xs text-slate-400 mt-1">Comparativo de valorização em relação ao Real Brasileiro (BRL)</p>
                 </div>
-                <div class="flex items-center space-x-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
-                    <button onclick="updateChartPeriod('all')" id="btn-period-all" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-600 text-white transition">Histórico 2026</button>
-                    <button onclick="updateChartPeriod('recent')" id="btn-period-recent" class="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Últimos Dias</button>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Seletor do Tipo de Gráfico: Câmbio ou Cripto (Bitcoin) -->
+                    <div class="flex items-center space-x-1 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+                        <button onclick="switchChartMode('fiat')" id="btn-mode-fiat" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5">
+                            <i data-lucide="landmark" class="w-3.5 h-3.5"></i> Câmbio (USD/EUR)
+                        </button>
+                        <button onclick="switchChartMode('crypto')" id="btn-mode-crypto" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                            <i data-lucide="bitcoin" class="w-3.5 h-3.5"></i> Cripto (Bitcoin)
+                        </button>
+                    </div>
+
+                    <!-- Seletor de Período -->
+                    <div class="flex items-center space-x-1 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+                        <button onclick="updateChartPeriod('all')" id="btn-period-all" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-800 text-white transition">Histórico 2026</button>
+                        <button onclick="updateChartPeriod('recent')" id="btn-period-recent" class="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Últimos Dias</button>
+                    </div>
                 </div>
             </div>
+
             <div class="relative w-full h-[320px] md:h-[400px]">
                 <canvas id="currencyChart"></canvas>
             </div>
@@ -220,7 +261,7 @@
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-xl font-bold text-white flex items-center gap-2">
                             <i data-lucide="arrow-right-left" class="w-5 h-5 text-sky-400"></i>
-                            Simulador Instantâneo de Câmbio
+                            Simulador Instantâneo de Câmbio & Cripto
                         </h3>
                     </div>
                     <div class="space-y-4">
@@ -270,7 +311,7 @@
                 <div>
                     <h3 class="text-xl font-bold text-white flex items-center gap-2 mb-4">
                         <i data-lucide="shield-alert" class="w-5 h-5 text-amber-400"></i>
-                        Matriz de Riscos Macroeconômicos
+                        Matriz de Riscos Macroeconômicos & Cripto
                     </h3>
                     <div class="space-y-4">
                         <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
@@ -282,10 +323,10 @@
                         </div>
                         <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
                             <div class="flex justify-between items-center mb-1">
-                                <span class="text-sm font-semibold text-slate-200">Europa: Zona do Euro</span>
-                                <span class="text-xs font-bold text-rose-400">Atenção</span>
+                                <span class="text-sm font-semibold text-slate-200">Bitcoin: Fluxo Institucional</span>
+                                <span class="text-xs font-bold text-orange-400">Alta Liquidez</span>
                             </div>
-                            <p class="text-xs text-slate-400 leading-relaxed">Ajustes de política monetária geram oscilações moderadas na paridade frente ao dólar.</p>
+                            <p class="text-xs text-slate-400 leading-relaxed">ETFs à vista e apetite por ativos digitais impulsionam movimentos intradiários do BTC/BRL.</p>
                         </div>
                         <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
                             <div class="flex justify-between items-center mb-1">
