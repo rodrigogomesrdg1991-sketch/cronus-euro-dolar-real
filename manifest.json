@@ -3,6 +3,7 @@
   "short_name": "CHRONOS 2026",
   "description": "Acompanhamento cambial e cripto em tempo real com simulação e histórico.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#060911",
   "theme_color": "#080c14",
