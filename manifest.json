@@ -1,0 +1,24 @@
+{
+  "name": "CHRONOS 2026 - Oráculo Econômico",
+  "short_name": "CHRONOS 2026",
+  "description": "Acompanhamento cambial e cripto em tempo real com simulação e histórico.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#060911",
+  "theme_color": "#080c14",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2534/2534204.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2534/2534204.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
