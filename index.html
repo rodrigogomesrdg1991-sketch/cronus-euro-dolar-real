@@ -56,7 +56,7 @@
             <div class="flex items-center space-x-3">
                 <div class="hidden md:flex items-center px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs text-slate-300">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-2"></span>
-                    <span>Cotação Atualizada: <strong>Novembro 2026</strong></span>
+                    <span id="lastUpdateBadge">Cotação Atualizada: <strong>Novembro 2026</strong></span>
                 </div>
                 <button id="refreshBtn" onclick="simularAtualizacao()" class="p-2 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800 transition duration-200" title="Atualizar Cotações">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
@@ -93,7 +93,7 @@
                     <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mt-3">
                         Perspectiva Macroeconômica das Moedas
                     </h2>
-                    <p class="text-slate-400 text-sm md:text-base max-w-2xl mt-2 leading-relaxed">
+                    <p id="heroSummaryText" class="text-slate-400 text-sm md:text-base max-w-2xl mt-2 leading-relaxed">
                         Acompanhamento cambial em tempo real. O Dólar a R$ 5,50 e o Euro a R$ 6,14 refletem o cenário atual de juros globais e balança comercial.
                     </p>
                 </div>
@@ -102,7 +102,7 @@
                     <div class="flex-1 sm:flex-none glass-card p-3 rounded-2xl border border-slate-800 text-center min-w-[120px]">
                         <span class="text-xs text-slate-400 block">Dólar Comercial</span>
                         <span class="text-lg font-bold text-emerald-400 flex items-center justify-center gap-1">
-                            <i data-lucide="trending-up" class="w-4 h-4"></i> R$ 5,50
+                            <i data-lucide="trending-up" class="w-4 h-4"></i> <span id="heroUsdValue">R$ 5,50</span>
                         </span>
                     </div>
                     <div class="flex-1 sm:flex-none glass-card p-3 rounded-2xl border border-slate-800 text-center min-w-[120px]">
@@ -133,10 +133,10 @@
                 </div>
                 <div class="mt-6">
                     <div class="text-3xl sm:text-4xl font-black tracking-tight text-white">
-                        R$ 5,50 <span class="text-sm font-medium text-slate-400">cotação</span>
+                        <span id="cardUsdValue">R$ 5,50</span> <span class="text-sm font-medium text-slate-400">cotação</span>
                     </div>
                     <div class="flex items-center gap-2 mt-2 text-xs text-slate-400">
-                        <span class="text-emerald-400 font-semibold flex items-center"><i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +0.3%</span>
+                        <span id="cardUsdVar" class="text-emerald-400 font-semibold flex items-center"><i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +0.3%</span>
                         <span>vs fechamento anterior</span>
                     </div>
                 </div>
@@ -158,11 +158,11 @@
                 </div>
                 <div class="mt-6">
                     <div class="text-3xl sm:text-4xl font-black tracking-tight text-white">
-                        R$ 6,14 <span class="text-sm font-medium text-slate-400">cotação</span>
+                        <span id="cardEurValue">R$ 6,14</span> <span class="text-sm font-medium text-slate-400">cotação</span>
                     </div>
                     <div class="flex items-center gap-2 mt-2 text-xs text-slate-400">
-                        <span class="text-rose-400 font-semibold flex items-center"><i data-lucide="trending-down" class="w-3 h-3 mr-1"></i> -0.2%</span>
-                        <span>vs Dólar USD</span>
+                        <span id="cardEurVar" class="text-rose-400 font-semibold flex items-center"><i data-lucide="trending-down" class="w-3 h-3 mr-1"></i> -0.2%</span>
+                        <span>vs fechamento anterior</span>
                     </div>
                 </div>
             </div>
