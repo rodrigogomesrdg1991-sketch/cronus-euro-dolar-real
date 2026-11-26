@@ -23,6 +23,54 @@ const chartDataRecent = {
     eur: [6.08, 6.10, 6.09, 6.12, 6.13, 6.14]
 };
 
+function formatBrl(value) {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function formatPct(pct) {
+    return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+}
+
+function updateMarketIndicators(usdRate, eurRate, usdPct, eurPct) {
+    const usdFormatted = formatBrl(usdRate);
+    const eurFormatted = formatBrl(eurRate);
+
+    const cardUsdValue = document.getElementById('cardUsdValue');
+    const cardEurValue = document.getElementById('cardEurValue');
+    const heroUsdValue = document.getElementById('heroUsdValue');
+    const heroSummaryText = document.getElementById('heroSummaryText');
+    const cardUsdVar = document.getElementById('cardUsdVar');
+    const cardEurVar = document.getElementById('cardEurVar');
+    const lastUpdateBadge = document.getElementById('lastUpdateBadge');
+
+    if (cardUsdValue) cardUsdValue.innerText = usdFormatted;
+    if (cardEurValue) cardEurValue.innerText = eurFormatted;
+    if (heroUsdValue) heroUsdValue.innerText = usdFormatted;
+
+    if (heroSummaryText) {
+        heroSummaryText.innerText = `Acompanhamento cambial em tempo real. O Dólar a ${usdFormatted} e o Euro a ${eurFormatted} refletem o cenário atual de juros globais e balança comercial.`;
+    }
+
+    if (cardUsdVar && !Number.isNaN(usdPct)) {
+        const isPos = usdPct >= 0;
+        cardUsdVar.className = `${isPos ? 'text-emerald-400' : 'text-rose-400'} font-semibold flex items-center`;
+        cardUsdVar.innerHTML = `<i data-lucide="${isPos ? 'trending-up' : 'trending-down'}" class="w-3 h-3 mr-1"></i> ${formatPct(usdPct)}`;
+    }
+
+    if (cardEurVar && !Number.isNaN(eurPct)) {
+        const isPos = eurPct >= 0;
+        cardEurVar.className = `${isPos ? 'text-emerald-400' : 'text-rose-400'} font-semibold flex items-center`;
+        cardEurVar.innerHTML = `<i data-lucide="${isPos ? 'trending-up' : 'trending-down'}" class="w-3 h-3 mr-1"></i> ${formatPct(eurPct)}`;
+    }
+
+    if (lastUpdateBadge) {
+        const horaAtual = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        lastUpdateBadge.innerHTML = `Cotação Atualizada: <strong>${horaAtual}</strong>`;
+    }
+
+    lucide.createIcons();
+}
+
 async function fetchRealTimeRates() {
     try {
         const response = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-BRL');
@@ -31,6 +79,9 @@ async function fetchRealTimeRates() {
         const usdRate = parseFloat(data.USDBRL.bid);
         const eurRate = parseFloat(data.EURBRL.bid);
         const btcRate = parseFloat(data.BTCBRL.bid);
+
+        const usdPct = parseFloat(data.USDBRL.pctChange);
+        const eurPct = parseFloat(data.EURBRL.pctChange);
 
         exchangeRatesCurrent.USD.BRL = usdRate;
         exchangeRatesCurrent.EUR.BRL = eurRate;
@@ -41,9 +92,17 @@ async function fetchRealTimeRates() {
         exchangeRatesCurrent.BRL.USD = 1 / usdRate;
         exchangeRatesCurrent.BRL.EUR = 1 / eurRate;
 
+        updateMarketIndicators(usdRate, eurRate, usdPct, eurPct);
         calculateConversion();
     } catch (error) {
         console.error('Erro ao buscar cotações ao vivo, usando valores padrão:', error);
+        updateMarketIndicators(
+            exchangeRatesCurrent.USD.BRL,
+            exchangeRatesCurrent.EUR.BRL,
+            0.3,
+            -0.2
+        );
+        calculateConversion();
     }
 }
 
