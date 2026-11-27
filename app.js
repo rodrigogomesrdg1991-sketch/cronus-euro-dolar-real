@@ -1,5 +1,3 @@
-lucide.createIcons();
-
 let exchangeRatesCurrent = {
     USD: { BRL: 5.50, EUR: 0.90, BTC: 0.0000132, USD: 1.0 },
     EUR: { BRL: 6.14, USD: 1.11, BTC: 0.0000147, EUR: 1.0 },
@@ -81,7 +79,7 @@ function updateMarketIndicators(usdRate, eurRate, btcRate, usdPct, eurPct, btcPc
 
     if (cardBtcVar && !Number.isNaN(btcPct)) {
         const isPos = btcPct >= 0;
-        cardBtcVar.className = `${isPos ? 'text-emerald-400' : 'text-orange-400'} font-semibold flex items-center`;
+        cardBtcVar.className = `${isPos ? 'text-emerald-400' : 'text-rose-400'} font-semibold flex items-center`;
         cardBtcVar.innerHTML = `<i data-lucide="${isPos ? 'trending-up' : 'trending-down'}" class="w-3 h-3 mr-1"></i> ${formatPct(btcPct)}`;
     }
 
@@ -90,7 +88,7 @@ function updateMarketIndicators(usdRate, eurRate, btcRate, usdPct, eurPct, btcPc
         lastUpdateBadge.innerHTML = `Cotação Atualizada: <strong>${horaAtual}</strong>`;
     }
 
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
 }
 
 function syncChartSeriesWithLiveRates(usdRate, eurRate, btcRate) {
@@ -111,24 +109,37 @@ function syncChartSeriesWithLiveRates(usdRate, eurRate, btcRate) {
 async function fetchRealTimeRates() {
     try {
         const response = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-BRL');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
         const data = await response.json();
 
-        const usdRate = parseFloat(data.USDBRL.bid);
-        const eurRate = parseFloat(data.EURBRL.bid);
-        const btcRate = parseFloat(data.BTCBRL.bid);
+        const usdRate = parseFloat(data.USDBRL?.bid);
+        const eurRate = parseFloat(data.EURBRL?.bid);
+        const btcRate = parseFloat(data.BTCBRL?.bid);
 
-        const usdPct = parseFloat(data.USDBRL.pctChange);
-        const eurPct = parseFloat(data.EURBRL.pctChange);
-        const btcPct = parseFloat(data.BTCBRL.pctChange);
+        if ([usdRate, eurRate, btcRate].some(Number.isNaN)) {
+            throw new Error('Dados inválidos retornados pela API.');
+        }
+
+        const usdPct = parseFloat(data.USDBRL?.pctChange);
+        const eurPct = parseFloat(data.EURBRL?.pctChange);
+        const btcPct = parseFloat(data.BTCBRL?.pctChange);
 
         exchangeRatesCurrent.USD.BRL = usdRate;
         exchangeRatesCurrent.EUR.BRL = eurRate;
         exchangeRatesCurrent.BTC.BRL = btcRate;
 
         exchangeRatesCurrent.USD.EUR = usdRate / eurRate;
+        exchangeRatesCurrent.USD.BTC = usdRate / btcRate;
+
         exchangeRatesCurrent.EUR.USD = eurRate / usdRate;
+        exchangeRatesCurrent.EUR.BTC = eurRate / btcRate;
+
         exchangeRatesCurrent.BRL.USD = 1 / usdRate;
         exchangeRatesCurrent.BRL.EUR = 1 / eurRate;
+        exchangeRatesCurrent.BRL.BTC = 1 / btcRate;
+
         exchangeRatesCurrent.BTC.USD = btcRate / usdRate;
         exchangeRatesCurrent.BTC.EUR = btcRate / eurRate;
 
@@ -229,7 +240,7 @@ function buildChartConfig() {
     }
 
     if (titleEl) {
-        titleEl.innerHTML = `<i data-lucide="line-chart" class="w-5 h-5 text-indigo-400"></i> Trajetória do Câmbio (USD & EUR)`;
+        titleEl.innerHTML = `<i data-lucide="line-chart" class="w-5 h-5 text-indigo-400"></i> Trajetória do Câmbio (USD &amp; EUR)`;
     }
     if (subtitleEl) {
         subtitleEl.innerText = 'Comparativo de valorização em relação ao Real Brasileiro (BRL)';
@@ -346,7 +357,7 @@ function renderChart() {
 
     updateToggleButtonsUI();
     chartInstance = new Chart(canvas.getContext('2d'), buildChartConfig());
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
 }
 
 function switchChartMode(mode) {
@@ -373,7 +384,7 @@ function calculateConversion() {
     const fromLabel = document.getElementById('fromCurrencyLabel');
     if (fromLabel) fromLabel.innerText = from;
 
-    let rate = exchangeRatesCurrent[from]?.[to] ?? 1;
+    const rate = exchangeRatesCurrent[from]?.[to] ?? 1;
     const total = amount * rate;
 
     let formattedTotal = '';
@@ -420,12 +431,13 @@ function simularAtualizacao() {
     });
 }
 
-window.onload = function() {
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.lucide) lucide.createIcons();
     renderChart();
     fetchRealTimeRates();
-};
+});
 
-// Expondo globalmente para o HTML
+// Expondo globalmente para os eventos inline do HTML
 window.simularAtualizacao = simularAtualizacao;
 window.calculateConversion = calculateConversion;
 window.executarPixSimulado = executarPixSimulado;
