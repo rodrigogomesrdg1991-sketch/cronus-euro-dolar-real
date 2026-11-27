@@ -29,9 +29,9 @@
             }
         }
     </script>
-    <!-- Lucide Icons & TradingView Lightweight Charts (Estilo Binance) -->
+    <!-- Lucide Icons & TradingView Lightweight Charts (Velas estilo Binance) -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
@@ -63,7 +63,7 @@
             <div class="flex items-center space-x-3">
                 <div class="hidden md:flex items-center px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs text-slate-300">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-2"></span>
-                    <span id="lastUpdateBadge">Cotação Atualizada: <strong>--:--</strong></span>
+                    <span id="lastUpdateBadge">Cotação Atualizada: <strong>Carregando...</strong></span>
                 </div>
                 <button id="refreshBtn" onclick="simularAtualizacao()" class="p-2 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800 transition duration-200" title="Atualizar Cotações">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
@@ -89,7 +89,7 @@
                         Perspectiva Macroeconômica &amp; Cripto
                     </h2>
                     <p id="heroSummaryText" class="text-slate-400 text-sm md:text-base max-w-2xl mt-2 leading-relaxed">
-                        Acompanhamento cambial e cripto em tempo real com gráfico de velas profissional.
+                        Acompanhamento cambial e cripto em tempo real com gráficos de velas interativos estilo Binance.
                     </p>
                 </div>
 
@@ -110,7 +110,7 @@
             </div>
         </section>
 
-        <!-- Cards de Moedas & Bitcoin (clicáveis para abrir no gráfico de velas) -->
+        <!-- Cards de Moedas & Bitcoin (clique para abrir o gráfico de velas do ativo) -->
         <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
             <!-- USD Card -->
             <div onclick="switchChartAsset('USD')" class="cursor-pointer glass-card neon-glow-usd rounded-3xl p-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-1">
@@ -213,54 +213,59 @@
             </div>
         </section>
 
-        <!-- Gráfico de Velas Estilo Binance (USD, EUR & BTC) -->
+        <!-- Seção de Gráfico de Velas (Estilo Binance) -->
         <section class="glass-card rounded-3xl p-5 md:p-8">
-            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-4">
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-5">
                 <div>
                     <h3 id="chartTitle" class="text-xl font-bold text-white flex items-center gap-2">
-                        <i data-lucide="dollar-sign" class="w-5 h-5 text-emerald-400"></i>
+                        <i data-lucide="candlestick-chart" class="w-5 h-5 text-emerald-400"></i>
                         Dólar Comercial (USD / BRL)
                     </h3>
-                    <p id="chartSubtitle" class="text-xs text-slate-400 mt-1">Velas OHLC em tempo real — AwesomeAPI • Período 1M</p>
+                    <p id="chartSubtitle" class="text-xs text-slate-400 mt-1">Gráfico de velas interativo • Atualização automática a cada 30s</p>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-3">
-                    <!-- Seletor de Ativo -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <!-- Seletor de Ativo (USD, EUR, BTC) -->
                     <div class="flex items-center space-x-1 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
-                        <button onclick="switchChartAsset('USD')" id="btn-asset-usd" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white transition flex items-center gap-1.5">
-                            <i data-lucide="dollar-sign" class="w-3.5 h-3.5"></i> Dólar
+                        <button onclick="switchChartAsset('USD')" id="btn-asset-USD" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white transition flex items-center gap-1.5">
+                            <span>$</span> Dólar
                         </button>
-                        <button onclick="switchChartAsset('EUR')" id="btn-asset-eur" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
-                            <i data-lucide="euro" class="w-3.5 h-3.5"></i> Euro
+                        <button onclick="switchChartAsset('EUR')" id="btn-asset-EUR" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                            <span>€</span> Euro
                         </button>
-                        <button onclick="switchChartAsset('BTC')" id="btn-asset-btc" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
-                            <i data-lucide="bitcoin" class="w-3.5 h-3.5"></i> Bitcoin
+                        <button onclick="switchChartAsset('BTC')" id="btn-asset-BTC" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                            <span>₿</span> Bitcoin
                         </button>
                     </div>
 
                     <!-- Seletor de Período (1D, 7D, 1M, 6M, 1A) -->
                     <div class="flex items-center space-x-1 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
-                        <button onclick="updateChartPeriod('1D')" id="btn-period-1D" class="px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">1D</button>
-                        <button onclick="updateChartPeriod('7D')" id="btn-period-7D" class="px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">7D</button>
-                        <button onclick="updateChartPeriod('1M')" id="btn-period-1M" class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 transition">1M</button>
-                        <button onclick="updateChartPeriod('6M')" id="btn-period-6M" class="px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">6M</button>
-                        <button onclick="updateChartPeriod('1A')" id="btn-period-1A" class="px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">1A</button>
+                        <button onclick="updateChartTimeframe('1D')" id="btn-tf-1D" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition">1D</button>
+                        <button onclick="updateChartTimeframe('7D')" id="btn-tf-7D" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition">7D</button>
+                        <button onclick="updateChartTimeframe('1M')" id="btn-tf-1M" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition">1M</button>
+                        <button onclick="updateChartTimeframe('6M')" id="btn-tf-6M" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition">6M</button>
+                        <button onclick="updateChartTimeframe('1A')" id="btn-tf-1A" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition">1A</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Barra OHLC estilo Binance -->
-            <div id="ohlcLegend" class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono mb-3 px-3 py-2 rounded-xl bg-slate-950/60 border border-slate-800/80">
-                <span class="text-slate-400">Carregando dados OHLC...</span>
+            <!-- Barra de Leitura OHLC estilo Binance -->
+            <div id="ohlcLegend" class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono px-3 py-2 mb-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-slate-400">
+                <span id="ohlcDate" class="text-slate-300 font-semibold">--</span>
+                <span>A: <strong id="ohlcOpen" class="text-white">--</strong></span>
+                <span>M: <strong id="ohlcHigh" class="text-emerald-400">--</strong></span>
+                <span>m: <strong id="ohlcLow" class="text-rose-400">--</strong></span>
+                <span>F: <strong id="ohlcClose" class="text-white">--</strong></span>
+                <span id="ohlcChange" class="font-semibold">--</span>
             </div>
 
             <!-- Container do Gráfico de Velas -->
-            <div class="relative w-full h-[350px] md:h-[430px] rounded-2xl bg-[#0b0e11]/90 border border-slate-800/80 overflow-hidden p-1">
+            <div class="relative w-full h-[340px] md:h-[430px] rounded-2xl overflow-hidden bg-[#0b0e14] border border-slate-800/80">
                 <div id="candlestickChart" class="w-full h-full"></div>
-                <div id="chartLoadingOverlay" class="hidden absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] items-center justify-center z-10">
-                    <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200">
-                        <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-amber-400"></i>
-                        <span>Carregando velas...</span>
+                <div id="chartLoader" class="hidden absolute inset-0 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center z-20">
+                    <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
+                        <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-indigo-400"></i>
+                        <span>Carregando velas ao vivo...</span>
                     </div>
                 </div>
             </div>
