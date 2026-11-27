@@ -387,4 +387,138 @@ function updateToggleButtonsUI() {
     const btnFiat = document.getElementById('btn-mode-fiat');
     const btnCrypto = document.getElementById('btn-mode-crypto');
     const btnAll = document.getElementById('btn-period-all');
-    const btnRecent = document.getElementById('btn-period
+    const btnRecent = document.getElementById('btn-period-recent');
+
+    if (btnFiat && btnCrypto) {
+        if (currentChartMode === 'fiat') {
+            btnFiat.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5';
+            btnCrypto.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5';
+        } else {
+            btnCrypto.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-orange-500 text-white transition flex items-center gap-1.5';
+            btnFiat.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5';
+        }
+    }
+
+    if (btnAll && btnRecent) {
+        if (currentChartPeriod === 'all') {
+            btnAll.className = 'px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-800 text-white transition';
+            btnRecent.className = 'px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition';
+        } else {
+            btnRecent.className = 'px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-800 text-white transition';
+            btnAll.className = 'px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition';
+        }
+    }
+}
+
+function renderChart() {
+    const canvas = document.getElementById('currencyChart');
+    if (!canvas) return;
+
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+
+    updateToggleButtonsUI();
+    chartInstance = new Chart(canvas.getContext('2d'), buildChartConfig());
+    if (window.lucide) lucide.createIcons();
+}
+
+function switchChartMode(mode) {
+    currentChartMode = mode;
+    renderChart();
+}
+
+function updateChartPeriod(period) {
+    currentChartPeriod = period;
+    renderChart();
+}
+
+function calculateConversion() {
+    const amountInput = document.getElementById('convertAmount');
+    const fromSelect = document.getElementById('fromCurrency');
+    const toSelect = document.getElementById('toCurrency');
+
+    if (!amountInput || !fromSelect || !toSelect) return;
+
+    const amount = parseFloat(amountInput.value) || 0;
+    const from = fromSelect.value;
+    const to = toSelect.value;
+
+    const fromLabel = document.getElementById('fromCurrencyLabel');
+    if (fromLabel) fromLabel.innerText = from;
+
+    const rate = exchangeRatesCurrent[from]?.[to] ?? 1;
+    const total = amount * rate;
+
+    let formattedTotal = '';
+    if (to === 'BRL') formattedTotal = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    else if (to === 'USD') formattedTotal = total.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    else if (to === 'EUR') formattedTotal = total.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+    else if (to === 'BTC') formattedTotal = '₿ ' + total.toFixed(6);
+
+    const resultEl = document.getElementById('conversionResult');
+    const detailEl = document.getElementById('conversionRateDetail');
+
+    if (resultEl) resultEl.innerText = formattedTotal;
+    if (detailEl) {
+        const rateFormatted = rate >= 100
+            ? rate.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : (rate < 0.01 ? rate.toFixed(7) : rate.toFixed(2));
+        detailEl.innerText = `1 ${from} = ${rateFormatted} ${to} (Cotação ao Vivo)`;
+    }
+}
+
+function showToast(title, message) {
+    const toast = document.getElementById('toastNotification');
+    if (!toast) return;
+    document.getElementById('toastTitle').innerText = title;
+    document.getElementById('toastMessage').innerText = message;
+
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 4000);
+}
+
+function executarPixSimulado() {
+    const amount = parseFloat(document.getElementById('convertAmount')?.value) || 0;
+    const from = document.getElementById('fromCurrency')?.value || 'USD';
+    const resultText = document.getElementById('conversionResult')?.innerText || '';
+    showToast("PIX Simulado", `Ordem de conversão de ${amount} ${from} para ${resultText} executada com sucesso.`);
+}
+
+function simularAtualizacao() {
+    const btn = document.getElementById('refreshBtn');
+    if (btn) btn.classList.add('animate-spin');
+    fetchRealTimeRates().then(() => {
+        if (btn) btn.classList.remove('animate-spin');
+        showToast("Dados Sincronizados", "Câmbio (AwesomeAPI) e Bitcoin (Binance) atualizados.");
+    });
+}
+
+function startAutoRefresh() {
+    if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+    autoRefreshTimer = setInterval(() => {
+        if (!document.hidden) {
+            fetchRealTimeRates();
+        }
+    }, AUTO_REFRESH_MS);
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        fetchRealTimeRates();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.lucide) lucide.createIcons();
+    renderChart();
+    fetchRealTimeRates();
+    startAutoRefresh();
+});
+
+// Expondo globalmente para os eventos inline do HTML
+window.simularAtualizacao = simularAtualizacao;
+window.calculateConversion = calculateConversion;
+window.executarPixSimulado = executarPixSimulado;
+window.switchChartMode = switchChartMode;
+window.updateChartPeriod = updateChartPeriod;
