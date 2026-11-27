@@ -29,9 +29,9 @@
             }
         }
     </script>
-    <!-- Lucide Icons & Chart.js -->
+    <!-- Lucide Icons & TradingView Lightweight Charts (Estilo Binance) -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
@@ -63,7 +63,7 @@
             <div class="flex items-center space-x-3">
                 <div class="hidden md:flex items-center px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs text-slate-300">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-2"></span>
-                    <span id="lastUpdateBadge">Cotação Atualizada: <strong>Novembro 2026</strong></span>
+                    <span id="lastUpdateBadge">Cotação Atualizada: <strong>--:--</strong></span>
                 </div>
                 <button id="refreshBtn" onclick="simularAtualizacao()" class="p-2 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800 transition duration-200" title="Atualizar Cotações">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
@@ -89,7 +89,7 @@
                         Perspectiva Macroeconômica &amp; Cripto
                     </h2>
                     <p id="heroSummaryText" class="text-slate-400 text-sm md:text-base max-w-2xl mt-2 leading-relaxed">
-                        Acompanhamento cambial e cripto em tempo real. Dólar a R$ 5,50, Euro a R$ 6,14 e Bitcoin a R$ 416.916,00 refletem liquidez global e juros.
+                        Acompanhamento cambial e cripto em tempo real com gráfico de velas profissional.
                     </p>
                 </div>
 
@@ -110,10 +110,10 @@
             </div>
         </section>
 
-        <!-- Cards de Moedas & Bitcoin -->
+        <!-- Cards de Moedas & Bitcoin (clicáveis para abrir no gráfico de velas) -->
         <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
             <!-- USD Card -->
-            <div class="glass-card neon-glow-usd rounded-3xl p-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-1">
+            <div onclick="switchChartAsset('USD')" class="cursor-pointer glass-card neon-glow-usd rounded-3xl p-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-1">
                 <div class="flex justify-between items-start">
                     <div class="flex items-center space-x-3">
                         <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-xl">$</div>
@@ -138,7 +138,7 @@
             </div>
 
             <!-- EUR Card -->
-            <div class="glass-card neon-glow-eur rounded-3xl p-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-1">
+            <div onclick="switchChartAsset('EUR')" class="cursor-pointer glass-card neon-glow-eur rounded-3xl p-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-1">
                 <div class="flex justify-between items-start">
                     <div class="flex items-center space-x-3">
                         <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold text-xl">€</div>
@@ -163,7 +163,7 @@
             </div>
 
             <!-- BTC Card -->
-            <div class="glass-card neon-glow-btc rounded-3xl p-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-1">
+            <div onclick="switchChartAsset('BTC')" class="cursor-pointer glass-card neon-glow-btc rounded-3xl p-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-1">
                 <div class="flex justify-between items-start">
                     <div class="flex items-center space-x-3">
                         <div class="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400 font-bold text-xl">₿</div>
@@ -213,38 +213,56 @@
             </div>
         </section>
 
-        <!-- Seção de Gráficos (Câmbio Tradicional vs Gráfico Cripto Bitcoin) -->
-        <section class="glass-card rounded-3xl p-6 md:p-8">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        <!-- Gráfico de Velas Estilo Binance (USD, EUR & BTC) -->
+        <section class="glass-card rounded-3xl p-5 md:p-8">
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-4">
                 <div>
                     <h3 id="chartTitle" class="text-xl font-bold text-white flex items-center gap-2">
-                        <i data-lucide="line-chart" class="w-5 h-5 text-indigo-400"></i>
-                        Trajetória do Câmbio (USD &amp; EUR)
+                        <i data-lucide="dollar-sign" class="w-5 h-5 text-emerald-400"></i>
+                        Dólar Comercial (USD / BRL)
                     </h3>
-                    <p id="chartSubtitle" class="text-xs text-slate-400 mt-1">Comparativo de valorização em relação ao Real Brasileiro (BRL)</p>
+                    <p id="chartSubtitle" class="text-xs text-slate-400 mt-1">Velas OHLC em tempo real — AwesomeAPI • Período 1M</p>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3">
-                    <!-- Seletor do Tipo de Gráfico: Câmbio ou Cripto (Bitcoin) -->
+                    <!-- Seletor de Ativo -->
                     <div class="flex items-center space-x-1 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
-                        <button onclick="switchChartMode('fiat')" id="btn-mode-fiat" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5">
-                            <i data-lucide="landmark" class="w-3.5 h-3.5"></i> Câmbio (USD/EUR)
+                        <button onclick="switchChartAsset('USD')" id="btn-asset-usd" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white transition flex items-center gap-1.5">
+                            <i data-lucide="dollar-sign" class="w-3.5 h-3.5"></i> Dólar
                         </button>
-                        <button onclick="switchChartMode('crypto')" id="btn-mode-crypto" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
-                            <i data-lucide="bitcoin" class="w-3.5 h-3.5"></i> Cripto (Bitcoin)
+                        <button onclick="switchChartAsset('EUR')" id="btn-asset-eur" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                            <i data-lucide="euro" class="w-3.5 h-3.5"></i> Euro
+                        </button>
+                        <button onclick="switchChartAsset('BTC')" id="btn-asset-btc" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                            <i data-lucide="bitcoin" class="w-3.5 h-3.5"></i> Bitcoin
                         </button>
                     </div>
 
-                    <!-- Seletor de Período -->
+                    <!-- Seletor de Período (1D, 7D, 1M, 6M, 1A) -->
                     <div class="flex items-center space-x-1 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
-                        <button onclick="updateChartPeriod('all')" id="btn-period-all" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-800 text-white transition">Histórico 2026</button>
-                        <button onclick="updateChartPeriod('recent')" id="btn-period-recent" class="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">Últimos Dias</button>
+                        <button onclick="updateChartPeriod('1D')" id="btn-period-1D" class="px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">1D</button>
+                        <button onclick="updateChartPeriod('7D')" id="btn-period-7D" class="px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">7D</button>
+                        <button onclick="updateChartPeriod('1M')" id="btn-period-1M" class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 transition">1M</button>
+                        <button onclick="updateChartPeriod('6M')" id="btn-period-6M" class="px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">6M</button>
+                        <button onclick="updateChartPeriod('1A')" id="btn-period-1A" class="px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">1A</button>
                     </div>
                 </div>
             </div>
 
-            <div class="relative w-full h-[320px] md:h-[400px]">
-                <canvas id="currencyChart"></canvas>
+            <!-- Barra OHLC estilo Binance -->
+            <div id="ohlcLegend" class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono mb-3 px-3 py-2 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                <span class="text-slate-400">Carregando dados OHLC...</span>
+            </div>
+
+            <!-- Container do Gráfico de Velas -->
+            <div class="relative w-full h-[350px] md:h-[430px] rounded-2xl bg-[#0b0e11]/90 border border-slate-800/80 overflow-hidden p-1">
+                <div id="candlestickChart" class="w-full h-full"></div>
+                <div id="chartLoadingOverlay" class="hidden absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] items-center justify-center z-10">
+                    <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200">
+                        <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-amber-400"></i>
+                        <span>Carregando velas...</span>
+                    </div>
+                </div>
             </div>
         </section>
 
