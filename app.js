@@ -1,5 +1,3 @@
-import { signUp, signIn, signOut, getCurrentUser, saveSimulation } from './authService.js';
-
 lucide.createIcons();
 
 let exchangeRatesCurrent = {
@@ -114,7 +112,7 @@ async function fetchRealTimeRates() {
     try {
         const response = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-BRL');
         const data = await response.json();
-        
+
         const usdRate = parseFloat(data.USDBRL.bid);
         const eurRate = parseFloat(data.EURBRL.bid);
         const btcRate = parseFloat(data.BTCBRL.bid);
@@ -126,7 +124,7 @@ async function fetchRealTimeRates() {
         exchangeRatesCurrent.USD.BRL = usdRate;
         exchangeRatesCurrent.EUR.BRL = eurRate;
         exchangeRatesCurrent.BTC.BRL = btcRate;
-        
+
         exchangeRatesCurrent.USD.EUR = usdRate / eurRate;
         exchangeRatesCurrent.EUR.USD = eurRate / usdRate;
         exchangeRatesCurrent.BRL.USD = 1 / usdRate;
@@ -401,105 +399,16 @@ function showToast(title, message) {
     if (!toast) return;
     document.getElementById('toastTitle').innerText = title;
     document.getElementById('toastMessage').innerText = message;
-    
+
     toast.classList.remove('hidden');
     setTimeout(() => toast.classList.add('hidden'), 4000);
 }
 
-// Funções ligadas diretamente aos botões do index.html
-function toggleAuthModal(show) {
-    const modal = document.getElementById('authModal');
-    if (!modal) return;
-    if (show) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    } else {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-}
-
-async function handleRegister() {
-    const email = document.getElementById('authEmail')?.value;
-    const password = document.getElementById('authPassword')?.value;
-    if (!email || !password) {
-        showToast("Atenção", "Preencha o e-mail e a senha.");
-        return;
-    }
-    try {
-        await signUp(email, password);
-        showToast("Conta Criada!", "Verifique seu e-mail ou faça login.");
-        toggleAuthModal(false);
-    } catch (error) {
-        showToast("Erro no Registo", error.message);
-    }
-}
-
-async function handleLogin() {
-    const email = document.getElementById('authEmail')?.value;
-    const password = document.getElementById('authPassword')?.value;
-    if (!email || !password) {
-        showToast("Atenção", "Preencha o e-mail e a senha.");
-        return;
-    }
-    try {
-        await signIn(email, password);
-        showToast("Login com Sucesso", "Sessão iniciada no Supabase.");
-        toggleAuthModal(false);
-        checkActiveSession();
-    } catch (error) {
-        showToast("Erro no Login", error.message);
-    }
-}
-
-async function handleLogout() {
-    try {
-        await signOut();
-        showToast("Sessão Terminada", "Você saiu da sua conta.");
-        checkActiveSession();
-    } catch (error) {
-        showToast("Erro", error.message);
-    }
-}
-
-async function checkActiveSession() {
-    try {
-        const user = await getCurrentUser();
-        const btnOpenAuth = document.getElementById('btnOpenAuth');
-        const userMenu = document.getElementById('userMenu');
-        const userEmailDisplay = document.getElementById('userEmailDisplay');
-
-        if (user) {
-            if (btnOpenAuth) btnOpenAuth.classList.add('hidden');
-            if (userMenu) userMenu.classList.remove('hidden');
-            if (userEmailDisplay) userEmailDisplay.innerText = user.email;
-        } else {
-            if (btnOpenAuth) btnOpenAuth.classList.remove('hidden');
-            if (userMenu) userMenu.classList.add('hidden');
-        }
-    } catch (e) {
-        console.error(e);
-    }
-}
-
-async function executarPixSimulado() {
-    try {
-        const amount = parseFloat(document.getElementById('convertAmount')?.value) || 0;
-        const from = document.getElementById('fromCurrency')?.value || 'USD';
-        const to = document.getElementById('toCurrency')?.value || 'BRL';
-        const rate = exchangeRatesCurrent[from]?.[to] ?? 1;
-        const result = amount * rate;
-
-        const user = await getCurrentUser();
-        if (user) {
-            await saveSimulation({ from, to, amount, result, rate });
-            showToast("PIX & Supabase", "Simulação executada e salva com sucesso no banco de dados!");
-        } else {
-            showToast("PIX Realizado", "Simulação executada. Faça login para salvar no histórico do Supabase.");
-        }
-    } catch (error) {
-        showToast("Erro", "Falha ao gravar simulação: " + error.message);
-    }
+function executarPixSimulado() {
+    const amount = parseFloat(document.getElementById('convertAmount')?.value) || 0;
+    const from = document.getElementById('fromCurrency')?.value || 'USD';
+    const resultText = document.getElementById('conversionResult')?.innerText || '';
+    showToast("PIX Simulado", `Ordem de conversão de ${amount} ${from} para ${resultText} executada com sucesso.`);
 }
 
 function simularAtualizacao() {
@@ -514,14 +423,9 @@ function simularAtualizacao() {
 window.onload = function() {
     renderChart();
     fetchRealTimeRates();
-    checkActiveSession();
 };
 
 // Expondo globalmente para o HTML
-window.toggleAuthModal = toggleAuthModal;
-window.handleLogin = handleLogin;
-window.handleRegister = handleRegister;
-window.handleLogout = handleLogout;
 window.simularAtualizacao = simularAtualizacao;
 window.calculateConversion = calculateConversion;
 window.executarPixSimulado = executarPixSimulado;
