@@ -35,6 +35,9 @@ body {
 .neon-glow-eur {
     box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.2);
 }
+.neon-glow-btc {
+    box-shadow: 0 0 25px -5px rgba(249, 115, 22, 0.25);
+}
 .neon-glow-brl {
     box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.2);
 }
