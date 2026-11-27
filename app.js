@@ -1,3 +1,5 @@
+const AUTO_REFRESH_MS = 30000; // 30 segundos
+
 let exchangeRatesCurrent = {
     USD: { BRL: 5.50, EUR: 0.90, BTC: 0.0000132, USD: 1.0 },
     EUR: { BRL: 6.14, USD: 1.11, BTC: 0.0000147, EUR: 1.0 },
@@ -8,6 +10,8 @@ let exchangeRatesCurrent = {
 let chartInstance = null;
 let currentChartMode = 'fiat'; // 'fiat' (USD/EUR) ou 'crypto' (Bitcoin)
 let currentChartPeriod = 'all'; // 'all' ou 'recent'
+let isFetchingRates = false;
+let autoRefreshTimer = null;
 
 const chartDataFull = {
     labels: ['Jul', 'Ago', 'Set', 'Out (S1)', 'Out (S2)', 'Out (S3)', 'Out (S4)', 'Nov (S1)'],
@@ -37,6 +41,15 @@ function formatBrlCompact(value) {
 
 function formatPct(pct) {
     return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+}
+
+function getMidRate(pairData) {
+    const bid = parseFloat(pairData?.bid);
+    const ask = parseFloat(pairData?.ask);
+    if (!Number.isNaN(bid) && !Number.isNaN(ask)) {
+        return (bid + ask) / 2;
+    }
+    return bid;
 }
 
 function updateMarketIndicators(usdRate, eurRate, btcRate, usdPct, eurPct, btcPct) {
@@ -84,7 +97,11 @@ function updateMarketIndicators(usdRate, eurRate, btcRate, usdPct, eurPct, btcPc
     }
 
     if (lastUpdateBadge) {
-        const horaAtual = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const horaAtual = new Date().toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
         lastUpdateBadge.innerHTML = `Cotação Atualizada: <strong>${horaAtual}</strong>`;
     }
 
@@ -103,28 +120,82 @@ function syncChartSeriesWithLiveRates(usdRate, eurRate, btcRate) {
     chartDataRecent.eur[lastRecent] = eurRate;
     chartDataRecent.btc[lastRecent] = btcRate;
 
-    renderChart();
+    if (chartInstance) {
+        const source = currentChartPeriod === 'all' ? chartDataFull : chartDataRecent;
+        if (currentChartMode === 'crypto') {
+            chartInstance.data.datasets[0].data = [...source.btc];
+        } else {
+            chartInstance.data.datasets[0].data = [...source.usd];
+            chartInstance.data.datasets[1].data = [...source.eur];
+        }
+        chartInstance.update('none');
+    } else {
+        renderChart();
+    }
+}
+
+async function fetchAwesomeRates() {
+    const response = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-BRL', {
+        cache: 'no-store'
+    });
+    if (!response.ok) throw new Error(`AwesomeAPI HTTP ${response.status}`);
+    return response.json();
+}
+
+async function fetchBinanceBtcRate() {
+    const response = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCBRL', {
+        cache: 'no-store'
+    });
+    if (!response.ok) throw new Error(`Binance HTTP ${response.status}`);
+    return response.json();
 }
 
 async function fetchRealTimeRates() {
+    if (isFetchingRates) return;
+    isFetchingRates = true;
+
     try {
-        const response = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-BRL');
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+        const [awesomeResult, binanceResult] = await Promise.allSettled([
+            fetchAwesomeRates(),
+            fetchBinanceBtcRate()
+        ]);
+
+        let usdRate = exchangeRatesCurrent.USD.BRL;
+        let eurRate = exchangeRatesCurrent.EUR.BRL;
+        let btcRate = exchangeRatesCurrent.BTC.BRL;
+
+        let usdPct = NaN;
+        let eurPct = NaN;
+        let btcPct = NaN;
+
+        if (awesomeResult.status === 'fulfilled') {
+            const data = awesomeResult.value;
+            const parsedUsd = getMidRate(data.USDBRL);
+            const parsedEur = getMidRate(data.EURBRL);
+            const parsedBtcFallback = getMidRate(data.BTCBRL);
+
+            if (!Number.isNaN(parsedUsd)) usdRate = parsedUsd;
+            if (!Number.isNaN(parsedEur)) eurRate = parsedEur;
+            if (!Number.isNaN(parsedBtcFallback)) btcRate = parsedBtcFallback;
+
+            usdPct = parseFloat(data.USDBRL?.pctChange);
+            eurPct = parseFloat(data.EURBRL?.pctChange);
+            btcPct = parseFloat(data.BTCBRL?.pctChange);
+        } else {
+            console.warn('Falha na AwesomeAPI:', awesomeResult.reason);
         }
-        const data = await response.json();
 
-        const usdRate = parseFloat(data.USDBRL?.bid);
-        const eurRate = parseFloat(data.EURBRL?.bid);
-        const btcRate = parseFloat(data.BTCBRL?.bid);
+        // Prioriza a cotação do Bitcoin vinda da Binance (maior liquidez em BTC/BRL)
+        if (binanceResult.status === 'fulfilled') {
+            const binanceData = binanceResult.value;
+            const parsedBinanceBtc = parseFloat(binanceData?.lastPrice);
+            const parsedBinancePct = parseFloat(binanceData?.priceChangePercent);
 
-        if ([usdRate, eurRate, btcRate].some(Number.isNaN)) {
-            throw new Error('Dados inválidos retornados pela API.');
+            if (!Number.isNaN(parsedBinanceBtc)) btcRate = parsedBinanceBtc;
+            if (!Number.isNaN(parsedBinancePct)) btcPct = parsedBinancePct;
+        } else {
+            console.warn('Falha na Binance, usando fallback da AwesomeAPI para BTC:', binanceResult.reason);
         }
-
-        const usdPct = parseFloat(data.USDBRL?.pctChange);
-        const eurPct = parseFloat(data.EURBRL?.pctChange);
-        const btcPct = parseFloat(data.BTCBRL?.pctChange);
 
         exchangeRatesCurrent.USD.BRL = usdRate;
         exchangeRatesCurrent.EUR.BRL = eurRate;
@@ -147,17 +218,9 @@ async function fetchRealTimeRates() {
         syncChartSeriesWithLiveRates(usdRate, eurRate, btcRate);
         calculateConversion();
     } catch (error) {
-        console.error('Erro ao buscar cotações ao vivo, usando valores padrão:', error);
-        updateMarketIndicators(
-            exchangeRatesCurrent.USD.BRL,
-            exchangeRatesCurrent.EUR.BRL,
-            exchangeRatesCurrent.BTC.BRL,
-            0.3,
-            -0.2,
-            1.8
-        );
-        renderChart();
-        calculateConversion();
+        console.error('Erro ao buscar cotações ao vivo:', error);
+    } finally {
+        isFetchingRates = false;
     }
 }
 
@@ -174,7 +237,7 @@ function buildChartConfig() {
             titleEl.innerHTML = `<i data-lucide="bitcoin" class="w-5 h-5 text-orange-400"></i> Gráfico Cripto — Bitcoin (BTC / BRL)`;
         }
         if (subtitleEl) {
-            subtitleEl.innerText = 'Curva de preço e volatilidade do Bitcoin em Reais (BRL) com atualização ao vivo';
+            subtitleEl.innerText = 'Curva de preço do Bitcoin (Binance BTC/BRL) com atualização automática a cada 30s';
         }
 
         const btcGradient = ctx.createLinearGradient(0, 0, 0, 320);
@@ -184,11 +247,11 @@ function buildChartConfig() {
         return {
             type: 'line',
             data: {
-                labels: source.labels,
+                labels: [...source.labels],
                 datasets: [
                     {
                         label: 'Bitcoin (BTC / BRL)',
-                        data: source.btc,
+                        data: [...source.btc],
                         borderColor: '#f97316',
                         backgroundColor: btcGradient,
                         borderWidth: 3,
@@ -243,7 +306,7 @@ function buildChartConfig() {
         titleEl.innerHTML = `<i data-lucide="line-chart" class="w-5 h-5 text-indigo-400"></i> Trajetória do Câmbio (USD &amp; EUR)`;
     }
     if (subtitleEl) {
-        subtitleEl.innerText = 'Comparativo de valorização em relação ao Real Brasileiro (BRL)';
+        subtitleEl.innerText = 'Comparativo de valorização em relação ao Real Brasileiro (BRL) com atualização a cada 30s';
     }
 
     const usdGradient = ctx.createLinearGradient(0, 0, 0, 300);
@@ -257,11 +320,11 @@ function buildChartConfig() {
     return {
         type: 'line',
         data: {
-            labels: source.labels,
+            labels: [...source.labels],
             datasets: [
                 {
                     label: 'Dólar (USD / BRL)',
-                    data: source.usd,
+                    data: [...source.usd],
                     borderColor: '#10b981',
                     backgroundColor: usdGradient,
                     borderWidth: 3,
@@ -272,7 +335,7 @@ function buildChartConfig() {
                 },
                 {
                     label: 'Euro (EUR / BRL)',
-                    data: source.eur,
+                    data: [...source.eur],
                     borderColor: '#ef4444',
                     backgroundColor: eurGradient,
                     borderWidth: 3,
@@ -324,122 +387,4 @@ function updateToggleButtonsUI() {
     const btnFiat = document.getElementById('btn-mode-fiat');
     const btnCrypto = document.getElementById('btn-mode-crypto');
     const btnAll = document.getElementById('btn-period-all');
-    const btnRecent = document.getElementById('btn-period-recent');
-
-    if (btnFiat && btnCrypto) {
-        if (currentChartMode === 'fiat') {
-            btnFiat.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5';
-            btnCrypto.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5';
-        } else {
-            btnCrypto.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-orange-500 text-white transition flex items-center gap-1.5';
-            btnFiat.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5';
-        }
-    }
-
-    if (btnAll && btnRecent) {
-        if (currentChartPeriod === 'all') {
-            btnAll.className = 'px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-800 text-white transition';
-            btnRecent.className = 'px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition';
-        } else {
-            btnRecent.className = 'px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-800 text-white transition';
-            btnAll.className = 'px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition';
-        }
-    }
-}
-
-function renderChart() {
-    const canvas = document.getElementById('currencyChart');
-    if (!canvas) return;
-
-    if (chartInstance) {
-        chartInstance.destroy();
-    }
-
-    updateToggleButtonsUI();
-    chartInstance = new Chart(canvas.getContext('2d'), buildChartConfig());
-    if (window.lucide) lucide.createIcons();
-}
-
-function switchChartMode(mode) {
-    currentChartMode = mode;
-    renderChart();
-}
-
-function updateChartPeriod(period) {
-    currentChartPeriod = period;
-    renderChart();
-}
-
-function calculateConversion() {
-    const amountInput = document.getElementById('convertAmount');
-    const fromSelect = document.getElementById('fromCurrency');
-    const toSelect = document.getElementById('toCurrency');
-
-    if (!amountInput || !fromSelect || !toSelect) return;
-
-    const amount = parseFloat(amountInput.value) || 0;
-    const from = fromSelect.value;
-    const to = toSelect.value;
-
-    const fromLabel = document.getElementById('fromCurrencyLabel');
-    if (fromLabel) fromLabel.innerText = from;
-
-    const rate = exchangeRatesCurrent[from]?.[to] ?? 1;
-    const total = amount * rate;
-
-    let formattedTotal = '';
-    if (to === 'BRL') formattedTotal = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    else if (to === 'USD') formattedTotal = total.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    else if (to === 'EUR') formattedTotal = total.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
-    else if (to === 'BTC') formattedTotal = '₿ ' + total.toFixed(6);
-
-    const resultEl = document.getElementById('conversionResult');
-    const detailEl = document.getElementById('conversionRateDetail');
-
-    if (resultEl) resultEl.innerText = formattedTotal;
-    if (detailEl) {
-        const rateFormatted = rate >= 100
-            ? rate.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-            : (rate < 0.01 ? rate.toFixed(7) : rate.toFixed(2));
-        detailEl.innerText = `1 ${from} = ${rateFormatted} ${to} (Cotação ao Vivo)`;
-    }
-}
-
-function showToast(title, message) {
-    const toast = document.getElementById('toastNotification');
-    if (!toast) return;
-    document.getElementById('toastTitle').innerText = title;
-    document.getElementById('toastMessage').innerText = message;
-
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 4000);
-}
-
-function executarPixSimulado() {
-    const amount = parseFloat(document.getElementById('convertAmount')?.value) || 0;
-    const from = document.getElementById('fromCurrency')?.value || 'USD';
-    const resultText = document.getElementById('conversionResult')?.innerText || '';
-    showToast("PIX Simulado", `Ordem de conversão de ${amount} ${from} para ${resultText} executada com sucesso.`);
-}
-
-function simularAtualizacao() {
-    const btn = document.getElementById('refreshBtn');
-    if (btn) btn.classList.add('animate-spin');
-    fetchRealTimeRates().then(() => {
-        if (btn) btn.classList.remove('animate-spin');
-        showToast("Dados Sincronizados", "Taxas de câmbio e Bitcoin atualizadas via API.");
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    if (window.lucide) lucide.createIcons();
-    renderChart();
-    fetchRealTimeRates();
-});
-
-// Expondo globalmente para os eventos inline do HTML
-window.simularAtualizacao = simularAtualizacao;
-window.calculateConversion = calculateConversion;
-window.executarPixSimulado = executarPixSimulado;
-window.switchChartMode = switchChartMode;
-window.updateChartPeriod = updateChartPeriod;
+    const btnRecent = document.getElementById('btn-period
